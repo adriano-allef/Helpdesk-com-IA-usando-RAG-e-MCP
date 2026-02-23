@@ -4,7 +4,7 @@ from sqlalchemy import Column, String, Integer, Text, DateTime, ForeignKey
 # 2. Importar a 'Base' (Ela vem do nosso arquivo conexão)
 # É ela que avisa o banco para transformas em uma tabela
 
-from database import Base
+from database.database import Base
 
 # 3. Criar a Classe, herdando da Base
 
@@ -28,7 +28,7 @@ class Documents(Base):
 class Tickets(Base):
     __tablename__ = "tickets"
     id = Column(Integer, primary_key=True, index=True)
-    usuario_id = Column(Integer, ForeignKey("user.id"))
+    usuario_id = Column(Integer, ForeignKey("users.id"))
     titulo = Column(String, nullable=False)
     descricao = Column(Text, nullable=False)
     status = Column(String, nullable=False)
