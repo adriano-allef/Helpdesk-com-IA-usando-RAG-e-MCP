@@ -1,5 +1,6 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError # <-- O capturador de erros do banco 
 
 #Importações das pastas
 from database.database import engine, SessionLocal
@@ -29,23 +30,30 @@ def get_db():
 # Usei @app.post porque estou ENVIANDO DADOS PARA CRIAR ALGO NOVO.
 # response_model=schemas.UserResponse avisa o FastAPI para usar o Pydantic para formatar a saída.
 @app.post("/users", response_model=schemas.UserResponse)
-def creae_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
     # 1. Tradução: Peguei os dados validadeos pelo Pydantic (user)
     # e transformei no formato que o SQLALchemy entende (models.User)
     db_user = models.User(nome=user.nome, email=user.email, papel=user.papel)
 
-    #2. Adicionei o novo usuario na sessão do banco
     db.add(db_user)
 
-    #3. Executei o "Salvar" de fato (isso gera o ID automaticamente)
-    db.commit()
+    try:
+        db.commit()# tenta salvar
+        db.refresh(db_user)
+        return db_user
 
-    #4. Atualizei a variavel com os dados novos do banco ()
-    db.refresh(db_user)
+    except IntegrityError:
+        #Se der erro de e-mail duplicado, o código cai direto aqui!
 
-    #5.Devolvo o usuario (O Pydantic vai pegar isso e transformar em JSON graças àquele from_attributes=True!)
-    return db_user
+        #1. Rollback: Desfaz a transação travada no banco (EXTREMAMENTE IMPORTANTE)
+        db.rollback()
+
+        #2. Levanta um erro amigável (Status 400) para quem chamou a API
+        raise HTTPException(
+            status_code=400,
+            detail="Este e-mail já está cadastrado no sistema."
+        )
 
 #Rota de teste antiga
 @app.get("/")
