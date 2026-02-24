@@ -44,3 +44,12 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 # Esta é a exata variável importei lá no 'models.py'!
 # É ela que avisa o motor do SQLAlchemy sobre quais classes existem para virarem tabelas.
 Base = declarative_base()
+
+#Esta função abre uma sessão com o abnco e garante que ela seja fechada após o uso.
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
