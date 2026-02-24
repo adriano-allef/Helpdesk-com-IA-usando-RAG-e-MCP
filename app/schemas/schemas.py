@@ -34,3 +34,7 @@ class DocumentResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+#. Schema para a requisição de Busca Semântica
+class SearchQuery(BaseModel):
+    pergunta: str

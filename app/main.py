@@ -102,6 +102,37 @@ def create_document(document: schemas.DocumentCreate, db: Session = Depends(get_
     
     return db_document
 
+@app.post("/documents/search", response_model=list[schemas.DocumentResponse])
+def search_documents(query: schemas.SearchQuery, db: Session = Depends(get_db)):
+    #1. Valida a chave da IA
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    if not gemini_key:
+        raise HTTPException(status_code=500, detail="Chave da IA não configurada.")
+    
+    genai.configure(api_key=gemini_key)
+
+    try:
+        #2. Transforma a Pergunta num vetor
+        resposta_ia = genai.embed_content(
+            model="models/gemini-embedding-001",
+            content=query.pergunta,
+            task_type="retrieval_query", # <-- Avia a IA que isso é uma pergunta.
+            output_dimensionality=768
+        )
+        vetor_pergunta = resposta_ia['embedding']
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro na IA: {str(e)}")
+    
+    # 3. Busca vetorial no Postgresql
+    # Pedi ao banco para ordenar os documentos calculando a distancia matemática
+    # entre o vetor do documento e o vetor da pergunta
+    resultados = db.query(models.Documents).order_by(
+        models.Documents.embedding.cosine_distance(vetor_pergunta)
+    ).limit(2).all() # limit(2) traz apenas os 2 manuais mais relevantes
+
+    return resultados
+
 #Rota de teste antiga
 @app.get("/")
 def read_root():
