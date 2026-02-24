@@ -35,6 +35,10 @@ class DocumentResponse(BaseModel):
     class Config:
         from_attributes = True
 
-#. Schema para a requisição de Busca Semântica
+#5. Schema para a requisição de Busca Semântica
 class SearchQuery(BaseModel):
     pergunta: str
+
+#6. Schema para devolver a resposta conversacional da IA
+class ChatResponse(BaseModel):
+    resposta: str

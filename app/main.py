@@ -133,6 +133,60 @@ def search_documents(query: schemas.SearchQuery, db: Session = Depends(get_db)):
 
     return resultados
 
+@app.post("/chat", response_model=schemas.ChatResponse)
+def chat_with_bot(query: schemas.SearchQuery, db: Session = Depends(get_db)):
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    if not gemini_key:
+        raise HTTPException(status_code=500, detail="Chave da IA não configurada.")
+    
+    genai.configure(api_key=gemini_key)
+
+    try:
+        #---PARTE 1: O RETRIEVAL (A Busca Vetorial) ---
+        #transforma a pergunta em vetor
+        resposta_ia = genai.embed_content(
+            model="models/gemini-embedding-001",
+            content=query.pergunta,
+            task_type="retrieval_query",
+            output_dimensionality=768
+        )
+        vetor_pergunta = resposta_ia['embedding']
+
+        # Procura o documento MAIS RELEVANTE (pega apenas o 1° colocado com .firts())
+        documento_encontrado = db.query(models.Documents).order_by(
+            models.Documents.embedding.cosine_distance(vetor_pergunta)
+        ).first()
+
+        #Se o banco tiver vazio, avisa o utilizador
+        if not documento_encontrado:
+            return {"resposta": "Desculpe, não tenho nenhum manual cadastrado ainda."}
+        
+        #---Parte 2: A Generation (A Engenharia de Prompt)---
+        #Montei um texto invisível dando ordens estritas à IA
+        prompt_invisivel = f"""
+        Você é uma assistente virtual corporativo de Helpdesk, muito educado e prestativo.
+        O seu trabalho é responder à dívida do utilizador usando EXCLUSIVAMENTE o documento oficial abaixo.
+        Se a resposta não estiver no documento, diga educadamente que não tem essa informação.
+        Não invente dados.
+
+        DOCUMENTO OFICIAL DA EMPRESA:
+        Título: {documento_encontrado.titulo}
+        Conteúdo: {documento_encontrado.conteudo}
+
+        DÚVIDA DO UTILIZADOR:
+        {query.pergunta}
+        """
+
+        #Invoquei o modelo conversacional rápido do Google (Flash)
+        modelo_chat = genai.GenerativeModel('gemini-2.5-flash')
+        resposta_final = modelo_chat.generate_content(prompt_invisivel)
+
+        # Devolvemos a resposta processada para a tela
+        return {"resposta": resposta_final.text}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro interno no Chatbot: {str(e)}")
+
 #Rota de teste antiga
 @app.get("/")
 def read_root():
