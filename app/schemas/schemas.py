@@ -42,3 +42,7 @@ class SearchQuery(BaseModel):
 #6. Schema para devolver a resposta conversacional da IA
 class ChatResponse(BaseModel):
     resposta: str
+
+class ChatRequest(BaseModel):
+    pergunta: str
+    historico: list[dict] = [] # Vai receber as mensagens anteriores

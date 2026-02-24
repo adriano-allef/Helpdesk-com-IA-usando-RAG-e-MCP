@@ -1,7 +1,7 @@
 import google.generativeai as genai
 
 # Substitua pela sua chave real temporariamente para testar
-genai.configure(api_key="AIzaSyD_EPKTRQX9bMUCLP6iYpTLpd3_r4QICyQ")
+genai.configure(api_key="chaveapiaqui")
 
 print("Modelos de Embedding disponíveis para a sua chave:")
 # A função list_models() faz a mesma pergunta que o erro sugeriu!

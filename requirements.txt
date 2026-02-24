@@ -5,3 +5,5 @@ psycopg2-binary
 pydantic
 pgvector 
 google-generativeai
+streamlit
+requests
