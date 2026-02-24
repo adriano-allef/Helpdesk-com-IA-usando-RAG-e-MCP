@@ -7,6 +7,7 @@ from database.database import engine, SessionLocal
 from models.models import Base
 import models.models as models #para usar o models.User
 import schemas.schemas as schemas # Para usar schemas.UserCreate
+from datetime import datetime
 
 
 # 2. O camando do SQLAlchemy:
@@ -54,6 +55,17 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
             status_code=400,
             detail="Este e-mail já está cadastrado no sistema."
         )
+    
+@app.post("/documents", response_model=schemas.DocumentResponse)
+def create_document(document: schemas.DocumentCreate, db: Session = Depends(get_db)):
+    db_document = models.Documents(titulo=document.titulo, conteudo=document.conteudo, criado_em=datetime.now())
+    
+    # Adiciona e salva no banco
+    db.add(db_document)
+    db.commit()
+    db.refresh(db_document)
+    
+    return db_document
 
 #Rota de teste antiga
 @app.get("/")

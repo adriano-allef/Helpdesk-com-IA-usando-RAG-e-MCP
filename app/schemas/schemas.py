@@ -1,4 +1,5 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from datetime import datetime
 
 #1. Schema para criar um produto ( O que o usuário digita no site)
 #não tem ID aqui, porque o ID quem cria é o banco de dados depois!
@@ -19,4 +20,17 @@ class UserResponse(BaseModel):
 
     # Essa configuração extra avisa o Pydantic que ele vai receber os dados de um "Modelo do SQLAlchemy" e não de um simples dicionário.
     class Config:
-        from_atributtes = True
+        from_attributtes = True
+
+class DocumentCreate(BaseModel):
+    titulo: str
+    conteudo: str
+
+class DocumentResponse(BaseModel):
+    id: int
+    titulo: str = Field(min_length=1)#não aceita ""
+    conteudo: str = Field(min_length=10)#minimo 10 caracteres para o conteudo
+    criado_em: datetime
+
+    class Config:
+        from_attributes = True
