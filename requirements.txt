@@ -1,5 +1,7 @@
-# Nossas dependências (fastapi, sqlalchemy, psycopg2, etc)
 fastapi
 uvicorn
 sqlalchemy
 psycopg2-binary
+pydantic
+pgvector 
+google-generativeai

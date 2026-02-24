@@ -1,6 +1,6 @@
 services:
     db:
-        image: postgres:16-alpine
+        image: pgvector/pgvector:pg16
         container_name: help_db
         ports:
             - "5432:5432"
@@ -24,7 +24,7 @@ services:
             - DB_USER=${POSTGRES_USER}
             - DB_PASSWORD=${POSTGRES_PASSWORD}
             - DB_NAME=${POSTGRES_DB}
-        # - IA_API_KEY=${IA_API_KEY} <-- Pode deixar comentado por enquanto!
+            - GEMINI_API_KEY=${GEMINI_API_KEY}
         depends_on:
             - db
 # command: tail -f /dev/null <-- Substituímos isso no Dockerfile pelo comando real da API

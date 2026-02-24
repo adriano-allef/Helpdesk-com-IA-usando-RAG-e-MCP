@@ -1,6 +1,9 @@
+import os
+import google.generativeai as genai
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError # <-- O capturador de erros do banco 
+from sqlalchemy import text
 
 #Importações das pastas
 from database.database import engine, SessionLocal
@@ -11,6 +14,10 @@ from datetime import datetime
 
 
 # 2. O camando do SQLAlchemy:
+#Liga a extensão matemática no PostgreSQL
+with engine.connect() as conn:
+    conn. execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+    conn.commit()
 # "Cria a tabela no banco"
 Base.metadata.create_all(bind=engine)
 
@@ -58,9 +65,37 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     
 @app.post("/documents", response_model=schemas.DocumentResponse)
 def create_document(document: schemas.DocumentCreate, db: Session = Depends(get_db)):
-    db_document = models.Documents(titulo=document.titulo, conteudo=document.conteudo, criado_em=datetime.now())
     
-    # Adiciona e salva no banco
+    # 1. Segurança Fail-Fast: Vai buscar a chave ao .env
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    if not gemini_key:
+        raise HTTPException(status_code=500, detail="Chave da IA não configurada no servidor.")
+    
+    # 2. Configura a IA
+    genai.configure(api_key=gemini_key)
+    
+    try:
+        # 3. Pede à IA para transformar o texto num vetor (Embedding)
+        resposta_ia = genai.embed_content(
+            model="models/gemini-embedding-001",
+            content=document.conteudo,
+            task_type="retrieval_document", # Ajuda a IA a otimizar o vetor para ser "buscado" depois
+            output_dimensionality=768 #<-- força o tamanho do vetor, em ambientes empresariais ocupa cerca de 4x menos espaço e perdendo apenas de 1 a 3% de precisão. Economiza Ram e espaço em disco
+        )
+        vetor_gerado = resposta_ia['embedding']
+        
+    except Exception as e:
+        # Se a internet falhar ou a IA der erro, avisamos o utilizador
+        raise HTTPException(status_code=500, detail=f"Erro ao comunicar com a IA: {str(e)}")
+
+    # 4. Monta o documento com o texto E os números gerados!
+    db_document = models.Documents(
+        titulo=document.titulo, 
+        conteudo=document.conteudo, 
+        criado_em=datetime.now(),
+        embedding=vetor_gerado # <-- O CÉREBRO MATEMÁTICO ENTRA AQUI!
+    )
+    
     db.add(db_document)
     db.commit()
     db.refresh(db_document)

@@ -1,5 +1,6 @@
 # 1. Importar as ferramentas que definem os tipos de dados
 from sqlalchemy import Column, String, Integer, Text, DateTime, ForeignKey
+from pgvector.sqlalchemy import Vector
 
 # 2. Importar a 'Base' (Ela vem do nosso arquivo conexão)
 # É ela que avisa o banco para transformas em uma tabela
@@ -24,6 +25,9 @@ class Documents(Base):
     titulo = Column(String, nullable=False)
     conteudo = Column(Text, nullable=False)
     criado_em = Column(DateTime, nullable=False)
+
+        # NOVA COLUNA: Guarda uma lista de 1536 números no padrão da OpenAI ou 768 no padrão google gemini
+    embedding = Column(Vector(768))
 
 class Tickets(Base):
     __tablename__ = "tickets"
