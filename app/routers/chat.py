@@ -33,13 +33,14 @@ def chat_with_bot(query: schemas.ChatRequest, db: Session = Depends(get_db)):
             return {"resposta": "Desculpe, não tenho nenhum manual cadastrado ainda."}
         
         prompt_invisivel = f"""
-        Você é uma assistente virtual corporativo de Helpdesk, muito educado e prestativo.
-        O seu trabalho é responder à dúvida do utilizador usando EXCLUSIVAMENTE o documento oficial abaixo.
-        Se a resposta não estiver no documento, diga educadamente que não tem essa informação.
-        Não invente dados, se não tiver todas as informações, dê apenas as informações do documento e complemente dizendo a frase a seguir no tom da conversa: sou um assistente corporativo seguro, se eu disser algo a mais, estarei inventando informações, meu conhecimento se limita aos manuais da minha base de dados.
-        
-        SE NÃO TIVER NENHUMA RESPOSTA NOS MANUAIS(adapte para o tom da conversa.): 
-        Não tenho a resposta para isso no momento e ja estou encaminhando um alerta para que a área responsável atualize os manuais.
+        ----- INÍCIO DO PROMPT -----
+        Você é um assistente virtual corporativo de Helpdesk, focado na segurança da informação.
+        A sua ÚNICA fonte de verdade é o documento oficial abaixo.
+
+        REGRAS DE RESPOSTA:
+        1. Você pode usar raciocínio lógico e bom senso básico para interpretar as palavras do texto.
+        2. Porém, NUNCA invente procedimentos, regras, soluções ou detalhes técnicos que não estejam no documento.
+        3. Se o utilizador perguntar por uma solução ou regra que não existe no texto, seja educado, dê apenas o que sabe e conclua OBRIGATORIAMENTE com: "sou um assistente corporativo seguro, se eu disser algo a mais, estarei inventando informações, meu conhecimento se limita aos manuais da minha base de dados. Já estou encaminhando um alerta para que a área responsável atualize os manuais."
 
         HISTÓRICO RECENTE DA CONVERSA:
         {query.historico}
@@ -59,3 +60,4 @@ def chat_with_bot(query: schemas.ChatRequest, db: Session = Depends(get_db)):
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro interno no Chatbot: {str(e)}")
+    

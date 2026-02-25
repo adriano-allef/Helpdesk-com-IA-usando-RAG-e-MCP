@@ -3,8 +3,8 @@ import requests
 
 # Configuração da página
 st.set_page_config(page_title="Helpdesk IA", page_icon="🤖")
-st.title("🤖 Assistente Virtual Corporativo")
-st.caption("O seu RAG Helpdesk conectado aos manuais da empresa")
+st.title("🤖 Assistente Virtual de Manuais")
+st.caption("Respostas precisas e fundamentadas diretamente nos manuais da instituição.")
 
 # 1. Inicializa o histórico de chat na memória do Streamlit
 if "mensagens" not in st.session_state:
