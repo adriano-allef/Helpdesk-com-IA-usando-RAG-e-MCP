@@ -40,7 +40,7 @@ def chat_with_bot(query: schemas.ChatRequest, db: Session = Depends(get_db)):
         REGRAS DE RESPOSTA:
         1. Você pode usar raciocínio lógico e bom senso básico para interpretar as palavras do texto.
         2. Porém, NUNCA invente procedimentos, regras, soluções ou detalhes técnicos que não estejam no documento.
-        3. Se o utilizador perguntar por uma solução ou regra que não existe no texto, seja educado, dê apenas o que sabe e conclua OBRIGATORIAMENTE com: "sou um assistente corporativo seguro, se eu disser algo a mais, estarei inventando informações, meu conhecimento se limita aos manuais da minha base de dados. Já estou encaminhando um alerta para que a área responsável atualize os manuais."
+        3. Se o utilizador perguntar por uma solução ou regra que não existe no texto, seja educado, dê apenas o que sabe e conclua OBRIGATORIAMENTE com: "sou um assistente corporativo seguro, se eu disser algo a mais, estarei inventando informações, meu conhecimento se limita aos manuais da minha base de dados. Já estou encaminhando um alerta para que a área responsável atualize os manuais. [GATILHO_MCP_TICKET]"
 
         HISTÓRICO RECENTE DA CONVERSA:
         {query.historico}
@@ -56,7 +56,15 @@ def chat_with_bot(query: schemas.ChatRequest, db: Session = Depends(get_db)):
         modelo_chat = genai.GenerativeModel('gemini-2.5-flash')
         resposta_final = modelo_chat.generate_content(prompt_invisivel)
 
-        return {"resposta": resposta_final.text}
+        #1. Guarda o texto gerado pela IA numa variável
+        texto_da_ia = resposta_final.text
+
+        # ---2. O gatilho MCP (INTERCEPTAÇÂO) ---
+        if "[GATILHO_MCP_TICKET]" in texto_da_ia:
+            #Gatilho N8N vai entrar aqui
+            print("🚨 AVISO INTERNO: Tag detectada! Praparando para disparar Webhook para o n8n...")
+            texto_da_ia = texto_da_ia.replace("[GATILHO_MCP_TICKET]", "")
+        return {"resposta": texto_da_ia.strip()}
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro interno no Chatbot: {str(e)}")
