@@ -29,5 +29,27 @@ services:
             - db
 # command: tail -f /dev/null <-- Substituímos isso no Dockerfile pelo comando real da API
 
+    n8n:
+        image: docker.n8n.io/n8nio/n8n
+        container_name: n8n_helpdesk
+        restart: always
+        ports:
+            - "5678:5678"
+        environment:
+            - N8N_HOST
+            - N8N_PORT
+            - N8N_PROTOCOL
+            - NODE_ENV
+            - WEBHOOK_URL
+            - GENERIC_TIMEZONE
+        volumes:
+            - n8n_data:/home/node/.n8n
+        networks:
+            - rag_network
+
 volumes:
     postgres_data:
+    n8n_data:
+
+networks:
+    rag_network:
