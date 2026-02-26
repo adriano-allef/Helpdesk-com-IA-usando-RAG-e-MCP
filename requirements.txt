@@ -7,3 +7,5 @@ pgvector
 google-generativeai
 streamlit
 requests
+python-multipart==0.0.9
+pypdf==4.1.0
