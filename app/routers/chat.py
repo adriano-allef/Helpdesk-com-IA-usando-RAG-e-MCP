@@ -1,4 +1,5 @@
 import os
+import requests
 import google.generativeai as genai
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -59,11 +60,31 @@ def chat_with_bot(query: schemas.ChatRequest, db: Session = Depends(get_db)):
         #1. Guarda o texto gerado pela IA numa variável
         texto_da_ia = resposta_final.text
 
-        # ---2. O gatilho MCP (INTERCEPTAÇÂO) ---
+        # Verifica se o gatilho está no texto
         if "[GATILHO_MCP_TICKET]" in texto_da_ia:
             #Gatilho N8N vai entrar aqui
             print("🚨 AVISO INTERNO: Tag detectada! Praparando para disparar Webhook para o n8n...")
+            
+            # --- INÍCIO DA CHAMADA PARA O n8n --
+            try:
+                #AQUI TROCA O localhost por n8n:
+                url_webhook = "http://n8n:5678/webhook-test/e1130a8d-8e87-43d4-bd9f-10e03c21b9b2"
+
+                # Os dados que vai enviar para o n8n trabalhar
+                dados_para_n8n = {
+                    "assunto": "Alerta de Helpdesk - Manual Desatualizado",
+                    "mensagem_do_usuario": query.pergunta
+                }
+
+                #Dispara a requisição POST (precisa do 'import requests' no topo do arquivo)
+                requests.post(url_webhook, json=dados_para_n8n, timeout=5)
+                print("📨 Webhook enviado com sucesso para o n8n!")
+            except Exception as erro:
+                print(f"❌ Erro ao comunicar o n8n: {erro}")
+
+            #apaga a tag subescrevendo a variável
             texto_da_ia = texto_da_ia.replace("[GATILHO_MCP_TICKET]", "")
+        #devolve o texto limpo
         return {"resposta": texto_da_ia.strip()}
     
     except Exception as e:

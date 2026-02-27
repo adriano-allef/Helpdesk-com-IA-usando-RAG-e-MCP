@@ -10,6 +10,8 @@ services:
             - POSTGRES_DB=${POSTGRES_DB}
         volumes:
             - postgres_data:/var/lib/postgresql/data
+        networks:
+            - rag_network
 
     app:
         build: .
@@ -28,6 +30,8 @@ services:
         depends_on:
             - db
 # command: tail -f /dev/null <-- Substituímos isso no Dockerfile pelo comando real da API
+        networks:
+            - rag_network
 
     n8n:
         image: docker.n8n.io/n8nio/n8n
