@@ -68,7 +68,10 @@ def chat_with_bot(query: schemas.ChatRequest, db: Session = Depends(get_db)):
             # --- INÍCIO DA CHAMADA PARA O n8n --
             try:
                 #AQUI TROCA O localhost por n8n:
+                #Url de teste
                 url_webhook = "http://n8n:5678/webhook-test/e1130a8d-8e87-43d4-bd9f-10e03c21b9b2"
+                
+                #url_webhook = "http://n8n:5678/webhook-test/e1130a8d-8e87-43d4-bd9f-10e03c21b9b2"
 
                 # Os dados que vai enviar para o n8n trabalhar
                 dados_para_n8n = {

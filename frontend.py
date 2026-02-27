@@ -1,6 +1,75 @@
 import streamlit as st
 import requests
 
+with st.sidebar:
+    st.markdown("### Arquitetura do Sistema")
+    st.markdown("---")
+    
+    # Criamos o estilo CSS e a estrutura HTML da linha do tempo
+    fluxograma_html = """
+    <style>
+    .timeline { 
+        border-left: 2px solid #4a90e2; 
+        padding-left: 15px; 
+        margin-left: 10px; 
+        font-family: sans-serif;
+    }
+    .step { 
+        margin-bottom: 25px; 
+        position: relative;
+    }
+    .step::before {
+        content: '';
+        position: absolute;
+        left: -21px;
+        top: 5px;
+        width: 10px;
+        height: 10px;
+        background-color: #4a90e2;
+        border-radius: 50%;
+    }
+    .step b { 
+        font-size: 1.05em; 
+    }
+    .step p { 
+        margin: 5px 0 0 0; 
+        font-size: 0.9em; 
+        opacity: 0.8; 
+        line-height: 1.4;
+    }
+    </style>
+    
+    <div class="timeline">
+        <div class="step">
+            <b>1. Entrada do Usuário</b>
+            <p>Recebimento do problema via chat.</p>
+        </div>
+        <div class="step">
+            <b>2. Motor de Busca (RAG)</b>
+            <p>Varredura nos manuais técnicos da base de conhecimento.</p>
+        </div>
+        <div class="step">
+            <b>3. Tomada de Decisão (IA)</b>
+            <p><b>Solução encontrada:</b> Responde ao usuário.<br>
+            <b>Sem solução:</b> Aciona orquestração.</p>
+        </div>
+        <div class="step">
+            <b>4. Orquestração (n8n)</b>
+            <p>Captura dos dados via Webhook em segundo plano.</p>
+        </div>
+        <div class="step">
+            <b>5. Persistência e Fila</b>
+            <p>• Gravação na tabela tickets (PostgreSQL).<br>
+            • Criação de Card no Kanban (Trello).</p>
+        </div>
+    </div>
+    """
+    
+    # O unsafe_allow_html=True permite renderizar o CSS/HTML no Streamlit
+    st.markdown(fluxograma_html, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    st.caption("Tech Stack: Python • Docker • n8n • PostgreSQL")
 # Configuração da página
 st.set_page_config(page_title="Helpdesk IA", page_icon="🤖")
 st.title("🤖 Assistente Virtual de Manuais")
