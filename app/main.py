@@ -18,7 +18,7 @@ Base.metadata.create_all(bind=engine)
 # 2. Inicialização da API
 app = FastAPI(
     title="Helpdesk Institucional API",
-    description="API com IA Generativa e Banco Vetorial (RAG) para Helpdesk"
+    description="Assistente Virtual Corporativo (RAG & Agentic Workflow)"
 )
 
 # 3. Registrar as rotas (Os "departamentos" do sistema)

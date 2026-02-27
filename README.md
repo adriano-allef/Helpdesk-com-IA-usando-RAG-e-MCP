@@ -1,118 +1,100 @@
-# 🤖 Assistente Virtual Corporativo (RAG & MCP Ready)
+# 🤖 Helpdesk AI: RAG & Agentic Workflow
 
-![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-009688.svg)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-pgvector-336791.svg)
-![Gemini](https://img.shields.io/badge/Gemini-2.5_Flash-orange.svg)
-![Streamlit](https://img.shields.io/badge/Streamlit-1.31+-FF4B4B.svg)
-![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg)
-
-## 🎯 Sobre o Projeto
-Um dos maiores receios das empresas na adoção de Inteligência Artificial é a "alucinação" — o risco de o modelo inventar regras ou procedimentos corporativos que não existem. Para resolver este problema prático, desenvolvi do zero uma arquitetura **RAG (Retrieval-Augmented Generation)** focada em segurança, governança e fidelidade aos dados (*Strict Groundedness*).
-
-O meu projeto é um **Assistente Virtual de Helpdesk** desenhado para consultar manuais internos de uma instituição e responder aos utilizadores com precisão cirúrgica. Em vez de utilizar ferramentas *no-code*, decidi construir toda a infraestrutura para garantir o controlo total sobre o fluxo de dados, a segurança e os custos computacionais.
-
-## 💡 Principais Funcionalidades
-- **Busca Semântica Avançada:** Vetorização de documentos para encontrar a resposta exata baseada no contexto, e não apenas em palavras-chave.
-- **Memória Conversacional:** O *frontend* gere o histórico recente, permitindo ao utilizador fazer perguntas de acompanhamento (ex: "E onde fica essa bandeja?") sem perder o contexto.
-- **Zero Alucinação (Trava de Segurança):** Se a resposta não estiver explicitamente na base de dados, a IA recusa-se a inventar, assumindo uma postura corporativa e transparente.
-
+## 🎯Sobre o Projeto
+ 
+ Este projeto implementa uma arquitetura de RAG (Retrieval-Augmented Generation) focada em resolver o problema de alucinação em LLMs para uso corporativo.
+ 
+ O objetivo é criar um Assistente de Helpdesk que consulta manuais internos e responde de forma técnica e precisa. Caso a solução não esteja na base de dados, o sistema utiliza um fluxo agêntico para abrir um ticket automaticamente no Trello via n8n, garantindo que o usuário nunca fique sem suporte.
+ 
+ A infraestrutura foi desenvolvida via código (`FastAPI`) para assegurar total controle sobre o fluxo de dados, segurança e custos de API.
+ 
+ ## 💡O que ele fazBusca 
+ 
+ * **Vetorial (pgvector):** Realiza busca semântica em documentos, encontrando o contexto correto em vez de apenas palavras-chave.
+ * **Filtro de Respostas (Groundedness):** Configuração de prompt para garantir que a IA responda apenas o que consta nos documentos oficiais. 
+ * **Automação de Tickets (n8n):** Se a IA não souber a resposta, ela dispara um Webhook para o `n8n`, que cria um card no `Trello` da equipe de suporte.
+ * **Histórico de Chat:** Gerenciamento de memória no frontend para manter o fluxo da conversa.
+ 
 ## 🛠️ Stack Tecnológico
-- **Backend:** Python + FastAPI + SQLAlchemy
-- **Base de Dados:** PostgreSQL com extensão `pgvector`
-- **Inteligência Artificial:** API do Google (Embeddings `gemini-embedding-001` e LLM `gemini-2.5-flash`)
-- **Frontend:** Streamlit
-- **Infraestrutura:** Docker & Docker Compose
 
-## 🧠 Decisões Arquiteturais e Destaques
-Desenvolvi este sistema com mentalidade de ambiente de produção. Destaco 4 grandes decisões arquiteturais:
+* **Backend:**
+Python + FastAPI + SQLAlchemy
+* **Base de Dados:** PostgreSQL com extensão ´pgvector´
+* **Inteligência Artificial:** Google Gemini API (Embeddings e LLM)
+* **Orquestração:** n8n e Trello 
+* **APIFrontend:** Streamlit
 
-### 1. Otimização de Recursos (Redução de Custos e RAM)
-Em vez de utilizar a dimensionalidade padrão de 3072 do modelo de *embeddings* do Google, **forcei a saída para 768 dimensões**. Esta decisão reduziu drasticamente o consumo de memória RAM do servidor e o armazenamento na base de dados, mantendo a precisão da busca semântica por *Cosine Distance*.
-
-### 2. Strict Groundedness (Fidelidade aos Dados)
-Através de Engenharia de Prompt focada, blindei a IA. Se um utilizador perguntar algo fora dos manuais, o modelo ativa um protocolo de segurança, informando que o seu conhecimento está restrito à base oficial, eliminando o risco de *compliance*.
-
-### 3. Preparado para Escalar (MCP Ready)
-Programei a IA para, ao não encontrar uma resposta, gerar um gatilho em linguagem natural: *"Já estou a encaminhar um alerta para que a área responsável atualize os manuais"*. Este comportamento foi desenhado propositadamente para uma futura integração com o **Model Context Protocol (MCP)**, permitindo que a IA abra *tickets* no Jira de forma autónoma no futuro.
-
-### 4. Clean Architecture
-Refatorei e modularizei a API utilizando o `APIRouter` do FastAPI. As responsabilidades estão claramente separadas (*Separation of Concerns*): gestão de utilizadores, vetorização de documentos e motor do *chatbot* funcionam em módulos independentes, facilitando a manutenção e escalabilidade da aplicação.
+## 🧠 Escolhas Técnicas e Arquitetura
+O sistema foi estruturado com foco em performance e segurança. Abaixo, os pontos principais:
+1. **Performance de Vetores (768 dimensões):**  
+Configurei a saída do modelo de embeddings para __768 dimensões__ (em vez de 3072). Isso reduz o consumo de memória do banco e acelera a busca por similaridade sem perda de precisão no contexto de helpdesk.
+2. **Controle de Respostas (Strict Groundedness):** 
+O prompt atua em modo restrito. Se a informação não existir nos manuais, o modelo informa o limite do seu conhecimento e sugere a abertura do ticket.
+3. **Gatilhos de Automação:** 
+Quando a IA não encontra a resposta, ela insere uma tag invisível no backend. O FastAPI intercepta essa tag, limpa o texto para o usuário e dispara um __Webhook assíncrono__    para o n8n.
+4. **Segurança DevSecOps:** 
+Gestão de credenciais via arquivos .env injetados nos contêineres e uso do cofre de segredos (Vault) nativo do n8n.
+5. **Organização do Código (Clean Architecture):** Uso do `APIRouter` para separar as lógicas de usuários, documentos e chat em módulos independentes.
 
 ## 🚀 Como Executar o Projeto
-
-### Pré-requisitos
-- Docker e Docker Compose instalados na sua máquina.
-- Uma chave de API válida do [Google AI Studio](https://aistudio.google.com/).
-
-### Passo a Passo
-1. Clone este repositório:
-   ```bash
-   git clone [https://github.com/adriano-allef/Helpdesk-com-IA-usando-RAG-e-MCP.git](https://github.com/adriano-allef/Helpdesk-com-IA-usando-RAG-e-MCP.git)
-   cd Helpdesk-com-IA-usando-RAG-e-MCP
-   ```
-2. Crie um ficheiro .env na raiz do projeto e insira a sua chave de API:
-
+Pré-requisitos
+* Docker e Docker Compose instalados.
+* Chave de API do Google AI Studio.
+Passo a Passo
+1. Clone o repositório:
     ```bash
-    GEMINI_API_KEY=sua_chave_aqui_gerada_no_google_ai_studio
+    git clone https://github.com/adriano-allef/Helpdesk-com-IA-usando-RAG-e-MCP.gitcd Helpdesk-com-IA-usando-RAG-e-MCP
     ```
-3. Suba a infraestrutura completa (Base de Dados + API) através do Docker:
+2. Configure as variáveis de ambiente:
 
+    Crie um arquivo `.env` na raiz com:
+    ```.env
+    GEMINI_API_KEY=sua_chave_aqui
+    POSTGRES_USER=admin
+    POSTGRES_PASSWORD=senha_segura
+    POSTGRES_DB=helpdesk_db
+    ```
+    3. Suba a infraestrutura:
     ```bash
-    docker-compose up --build
+    docker compose up --build -d
     ```
 
-4. Num terminal separado, inicie o frontend interativo do Streamlit:
-    ```bash
+    4. Inicie o Frontend:
+    ``` bash
+    pip install -r requirements.txt
     streamlit run frontend.py
     ```
-
-### Acessos Loccais
-- Frontend (Chat)
-    ```
-    http://localhost:8501
-    ```
-
-- Documentação da API (Swagger) 
-    ```
-    http://localhost:8000/docs
-    ```
-
 ## 📡 Endpoints da API
-
-    
 | Rota | Método | Descrição |
 | :--- | :--- | :--- |
-| `/users/` | `POST` | Criação de novos utilizadores. |
-| `/documents/` | `POST` | Vetoriza e guarda um novo manual/documento. |
-| `/documents/search` | `POST` | Rota de teste para a busca semântica (`pgvector`). |
-| `/chat/` | `POST` | Motor principal do RAG. Recebe a pergunta e o histórico, e devolve a resposta gerada. |
+| `/users/` | `POST` | Cadastro de novos usuários. |
+| `/documents/` | `POST` |Vetorização e armazenamento de manuais |
+| `/documents/search` | `POST` | Teste de busca semântica por similaridade.(`pgvector`). |
+| `/chat/` | `POST` | Motor RAG principal e disparo de gatilhos. |
 
-## 📂 Estrutura de Ficheiros
-
+📂 Estrutura de Pastas
 ```plaintext
 app/
 ├── database/
-│   └── database.py      # Ligação e sessão da base de dados
+│   └── database.py      # Conexão e sessão do banco de dados
 ├── models/
 │   └── models.py        # Tabelas SQLAlchemy (ORM)
 ├── routers/
 │   ├── chat.py          # Lógica RAG e Prompts
 │   ├── documents.py     # Lógica de Embeddings
-│   └── users.py         # Lógica de Utilizadores
+│   └── users.py         # Lógica de Usuários
 ├── schemas/
 │   └── schemas.py       # Validação de dados (Pydantic)
-├── main.py              # Orquestrador da API FastAPI
-├── docker-compose.yml   # Orquestração dos contentores
+├── main.py              # Ponto de entrada da API FastAPI
+├── docker-compose.yml   # Orquestração dos contêineres (Docker)
 ├── Dockerfile           # Imagem do Backend
-├── frontend.py          # UI com Streamlit
+├── frontend.py          # Interface do usuário com Streamlit
 ├── requirements.txt     # Dependências do projeto
 └── README.md            # Documentação (Você está aqui!)
 ```
-
-## 🔮 Próximos Passos (Roadmap)
-
-- [x] Integração completa com base de dados vetorial.
-- [x] Implementação de memória conversacional.
-- [ ] **Integração MCP (Model Context Protocol)**: Ligar o gatilho de texto a uma função real que crie *tickets* em ferramentas de gestão (Jira/Trello).
-- [ ] Criação de interface para carregamento de PDFs (extração de texto e *chunking* dinâmico).
+## 🔮 Roadmap Concluído
+* [x] Integração com banco vetorial (pgvector).
+* [x] Memória conversacional no frontend.
+* [x] Agentic Workflow: Disparo de Webhooks para n8n.
+* [x] Integração Trello: Criação de cards automática.
+* [x] Dashboard Visual: Timeline de arquitetura no Streamlit.
