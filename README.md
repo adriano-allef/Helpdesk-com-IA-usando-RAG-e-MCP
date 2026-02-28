@@ -1,5 +1,13 @@
 # 🤖 Helpdesk AI: RAG & Agentic Workflow
 
+![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-009688.svg)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-pgvector-336791.svg)
+![Gemini](https://img.shields.io/badge/Gemini-2.5_Flash-orange.svg)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.31+-FF4B4B.svg)
+![n8n](https://img.shields.io/badge/n8n-FF6D5A?logo=n8n&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg)
+
 ## 🎯Sobre o Projeto
  
  Este projeto implementa uma arquitetura de RAG (Retrieval-Augmented Generation) focada em resolver o problema de alucinação em LLMs para uso corporativo.
